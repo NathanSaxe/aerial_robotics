@@ -21,14 +21,17 @@ class final:
         rospy.wait_for_service('/minihawk_SIM/mavros/cmd/arming')
 
         self.set_loiter_mode()
-        publish_control = rospy.Publisher('/minihawk_SIM/mavros/rc/override', OverrideRCIn, queue_size = 10)
-        kRho = 10.0
-        Ki = 0.1
-        Kd = 5.0
-        prev_error_x = prev_error_y = 0.0
+        self.motion()
+        self.set_land_mode()
 
+    def motion(self):
+        publish_control = rospy.Publisher('/minihawk_SIM/mavros/rc/override', OverrideRCIn, queue_size = 10)
         last_time = rospy.Time.now().to_sec()
         while True:
+            kRho = 10.0
+            Ki = 0.1
+            Kd = 5.0
+            prev_error_x = prev_error_y = 0.0
             if self.apriltagData:
                 apriltag_position = self.get_apriltag_position(self.apriltagData.pose)
                 apriltag_x_offset = apriltag_position.x
@@ -49,9 +52,7 @@ class final:
 
                 publish_control.publish(control)
 
-                rospy.sleep(0.5)
-
-            self.set_land_mode()
+                rospy.sleep(1)
     
     def arm_motors(self):
         armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
