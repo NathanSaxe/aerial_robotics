@@ -1,0 +1,93 @@
+#!/usr/bin/python
+import rospy
+from mavros_msgs.srv import SetMode, CommandBool
+from apriltag_ros.msg import AprilTagDetectionArray
+from mavros_msgs.msg import OverrideRCIn
+
+
+class final:
+    def __init__(self):
+        self.apriltagData = None
+        self.apriltagDetection = False
+        self.set_auto_mode()
+        self.arm_motors()
+        self.wait_for_apriltag()
+        self.pos()
+        self.set_land_mode()
+
+        #initialize the node, set anonymous to true
+        rospy.init_node('newNode', anonymous = True)
+        
+        #establishing services
+        rospy.wait_for_service('/minihawk_SIM/mavros/set_mode')
+        rospy.wait_for_service('/minihawk_SIM/mavros/cmd/arming')
+
+    
+    def arm_motors(self):
+        armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
+        armed(True)
+
+    
+    def apriltag_return(self, message):
+        if len(message.detections) > 0:
+            self.apriltagData = message.detections[0]
+            self.apriltagDetection = True
+    def wait_for_apriltag(self):
+        apriltag_subscriber = rospy.Subscriber('/minihawk_SIM/MH_usb_camera_link_optical/tag_detections', AprilTagDetectionArray, self.apriltag_return)
+        while not self.apriltagDetection and not rospy.is_shutdown():
+            rospy.sleep(0.1)
+        rospy.sleep(3)
+    def get_apriltag_position(self, pose):
+        while hasattr(pose, "pose"):
+            pose = pose.pose
+        return pose.position
+
+    def pos(self):
+        self.set_loiter_mode()
+        publish_control = rospy.Publisher('/minihawk_SIM/mavros/rc/override', OverrideRCIn, queue_size = 10)
+        kRho = 10.0
+        Ki = 0.1
+        Kd = 5.0
+        integral_x = integral_y = prev_error_x = prev_error_y = 0.0
+
+        last_time = rospy.Time.now().to_sec()
+        while True:
+            if self.apriltagData:
+                apriltag_position = self.get_apriltag_position(self.apriltagData.pose)
+                apriltag_x_offset = apriltag_position.x
+                apriltag_y_offset = apriltag_position.y
+                current_time = rospy.Time.now().to_sec()
+                timeDifference = max(current_time - last_time, 1e-3) 
+                last_time = current_time
+                integral_y += apriltag_y_offset * timeDifference
+                derivative_y = (apriltag_y_offset - prev_error_y) / timeDifference
+                roll_out = kRho * apriltag_y_offset + Ki * integral_y + Kd * derivative_y
+                prev_error_y = apriltag_y_offset
+                integral_x += apriltag_x_offset * timeDifference
+                derivative_x = (apriltag_x_offset - prev_error_x) / timeDifference
+                pitch_out = kRho * apriltag_x_offset + Ki * integral_x + Kd * derivative_x
+                prev_error_x = apriltag_x_offset
+                
+
+                throttle = 1500
+                roll = int(max(1000, min(2000, 1500 + roll_out)))
+                pitch = int(max(1000, min(2000, 1500 + pitch_out)))
+                yaw = 1500
+
+                control = OverrideRCIn()
+                control.channels = [roll, pitch, throttle, yaw, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+                publish_control.publish(control)
+
+                rospy.sleep(0.5)
+    def set_land_mode(self):
+        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
+        set_mode(0, 'QLAND')
+    def set_auto_mode(self):
+        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
+        set_mode(0, 'AUTO')
+    def set_loiter_mode(self):
+        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
+        set_mode(0, 'QLOITER')
+    
+program = final()
