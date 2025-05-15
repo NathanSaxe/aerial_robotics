@@ -90,8 +90,4 @@ class final:
     def set_land_mode(self):
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'QLAND')
-if __name__ == '__main__':
-    try:
-        program = final()
-    except rospy.ROSInterruptException:
-        pass
+program = final()
