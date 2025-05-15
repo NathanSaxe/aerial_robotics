@@ -51,14 +51,11 @@ class FinalProject:
 
     def finetune_position(self):
         #setting to qloiter
-        try:
-            set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
-            set_mode(0, 'QLOITER')  
-        except rospy.ServiceException as e:
-            print('Errored: ', e)
+        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
+        set_mode(0, 'QLOITER')
 
         publish_control = rospy.Publisher('/minihawk_SIM/mavros/rc/override', OverrideRCIn, queue_size = 10)
-        Kp = 10.0
+        kRho = 10.0
         Ki = 0.1
         Kd = 5.0
         integral_x = 0.0
@@ -81,20 +78,20 @@ class FinalProject:
                     break
                 
                 current_time = rospy.Time.now().to_sec()
-                dt = max(current_time - last_time, 1e-3) 
+                timeDifference = max(current_time - last_time, 1e-3) 
                 last_time = current_time
 
                 #calculate roll 
-                integral_y += apriltag_y_offset * dt
-                derivative_y = (apriltag_y_offset - prev_error_y) / dt
-                roll_out = Kp * apriltag_y_offset + Ki * integral_y + Kd * derivative_y
+                integral_y += apriltag_y_offset * timeDifference
+                derivative_y = (apriltag_y_offset - prev_error_y) / timeDifference
+                roll_out = kRho * apriltag_y_offset + Ki * integral_y + Kd * derivative_y
                 prev_error_y = apriltag_y_offset
                 roll = int(max(1000, min(2000, 1500 + roll_out)))
 
                 #calculate pitch
-                integral_x += apriltag_x_offset * dt
-                derivative_x = (apriltag_x_offset - prev_error_x) / dt
-                pitch_out = Kp * apriltag_x_offset + Ki * integral_x + Kd * derivative_x
+                integral_x += apriltag_x_offset * timeDifference
+                derivative_x = (apriltag_x_offset - prev_error_x) / timeDifference
+                pitch_out = kRho * apriltag_x_offset + Ki * integral_x + Kd * derivative_x
                 prev_error_x = apriltag_x_offset
                 pitch = int(max(1000, min(2000, 1500 + pitch_out)))
 
