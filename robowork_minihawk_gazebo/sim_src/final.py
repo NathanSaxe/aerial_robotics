@@ -21,6 +21,13 @@ class final:
         #establishing services
         rospy.wait_for_service('/minihawk_SIM/mavros/set_mode')
         rospy.wait_for_service('/minihawk_SIM/mavros/cmd/arming')
+
+    
+    def arm_motors(self):
+        armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
+        armed(True)
+
+    
     def apriltag_return(self, message):
         if len(message.detections) > 0:
             self.apriltagData = message.detections[0]
@@ -79,9 +86,6 @@ class final:
     def set_auto_mode(self):
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'AUTO')
-    def arm_motors(self):
-        armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
-        armed(True)
     def set_loiter_mode(self):
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'QLOITER')
