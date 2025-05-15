@@ -21,35 +21,22 @@ class final:
         #establishing services
         rospy.wait_for_service('/minihawk_SIM/mavros/set_mode')
         rospy.wait_for_service('/minihawk_SIM/mavros/cmd/arming')
-        
-    def set_auto_mode(self):
-        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
-        set_mode(0, 'AUTO')
-
-    def arm_motors(self):
-        armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
-        armed(True)
-
     def apriltag_return(self, message):
         if len(message.detections) > 0:
             self.apriltagData = message.detections[0]
             self.apriltagDetection = True
-
-    def get_apriltag_position(self, pose):
-        while hasattr(pose, "pose"):
-            pose = pose.pose
-        return pose.position
-
     def wait_for_apriltag(self):
         apriltag_subscriber = rospy.Subscriber('/minihawk_SIM/MH_usb_camera_link_optical/tag_detections', AprilTagDetectionArray, self.apriltag_return)
         while not self.apriltagDetection and not rospy.is_shutdown():
             rospy.sleep(0.1)
         rospy.sleep(3)
+    def get_apriltag_position(self, pose):
+        while hasattr(pose, "pose"):
+            pose = pose.pose
+        return pose.position
 
     def pos(self):
-        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
-        set_mode(0, 'QLOITER')
-
+        self.set_loiter_mode()
         publish_control = rospy.Publisher('/minihawk_SIM/mavros/rc/override', OverrideRCIn, queue_size = 10)
         kRho = 10.0
         Ki = 0.1
@@ -59,7 +46,6 @@ class final:
         last_time = rospy.Time.now().to_sec()
         while True:
             if self.apriltagData:
-                #take data
                 apriltag_position = self.get_apriltag_position(self.apriltagData.pose)
                 apriltag_x_offset = apriltag_position.x
                 apriltag_y_offset = apriltag_position.y
@@ -90,4 +76,14 @@ class final:
     def set_land_mode(self):
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'QLAND')
+    def set_auto_mode(self):
+        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
+        set_mode(0, 'AUTO')
+    def arm_motors(self):
+        armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
+        armed(True)
+    def set_loiter_mode(self):
+        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
+        set_mode(0, 'QLOITER')
+    
 program = final()
