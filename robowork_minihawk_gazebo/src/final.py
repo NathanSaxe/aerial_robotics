@@ -25,7 +25,7 @@ class final:
         kRho = 10.0
         Ki = 0.1
         Kd = 5.0
-        integral_x = integral_y = prev_error_x = prev_error_y = 0.0
+        prev_error_x = prev_error_y = 0.0
 
         last_time = rospy.Time.now().to_sec()
         while True:
