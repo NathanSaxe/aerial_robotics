@@ -109,8 +109,7 @@ cd $HOME/aerial_robotics_ws/ardupilot
 [Launch Rviz in new terminal]:
 rviz -d $HOME/aerial_robotics_ws/src/aerial_robotics/robowork_minihawk_launch/config/minihawk_SIM.rviz
 
-
-### Try switching between some Quadplane modes and control the aircraft motion ###
+python ../src/aerial_robotics/robowork_minihawk_gazebo/src/final.py
 
 
 
