@@ -36,9 +36,6 @@ class final:
                 current_time = rospy.Time.now().to_sec()
                 timeDifference = max(current_time - last_time, 1e-3) 
                 last_time = current_time
-                integral_y += apriltag_y_offset * timeDifference
-                derivative_y = (apriltag_y_offset - prev_error_y) / timeDifference
-                roll_out = kRho * apriltag_y_offset + Ki * integral_y + Kd * derivative_y
                 prev_error_y = apriltag_y_offset
                 integral_x += apriltag_x_offset * timeDifference
                 derivative_x = (apriltag_x_offset - prev_error_x) / timeDifference
@@ -47,7 +44,7 @@ class final:
                 
 
                 throttle = 1500
-                roll = int(max(1000, min(2000, 1500 + roll_out)))
+                roll = computeRot(apriltag_y_offset, prev_error_y, timeDifference, kRho, Ki, Kd)
                 pitch = int(max(1000, min(2000, 1500 + pitch_out)))
                 yaw = 1500
 
@@ -63,7 +60,12 @@ class final:
     def arm_motors(self):
         armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
         armed(True)
-
+        
+    def computeRot(self, offset, prevError, timeDiff, rho, theta, phi):
+        integral += offset * timeDiff
+        derivative = (offset - prevError)/timeDiff
+        output = rho * offset + theta * integral + phi * derivative 
+        return int(max(1000, min(2000, 1500 + output)))
     
     def apriltag_return(self, message):
         if len(message.detections) > 0:
