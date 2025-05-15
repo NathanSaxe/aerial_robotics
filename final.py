@@ -20,9 +20,11 @@ class final:
         rospy.wait_for_service('/minihawk_SIM/mavros/set_mode')
         rospy.wait_for_service('/minihawk_SIM/mavros/cmd/arming')
 
-        self.set_loiter_mode()
+        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
+        set_mode(0, 'QLOITER')
         self.motion()
-        self.set_land_mode()
+        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
+        set_mode(0, 'QLAND')
 
     def motion(self):
         publish_control = rospy.Publisher('/minihawk_SIM/mavros/rc/override', OverrideRCIn, queue_size = 10)
@@ -78,15 +80,8 @@ class final:
         while hasattr(pose, "pose"):
             pose = pose.pose
         return pose.position
-        
-    def set_land_mode(self):
-        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
-        set_mode(0, 'QLAND')
     def set_auto_mode(self):
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'AUTO')
-    def set_loiter_mode(self):
-        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
-        set_mode(0, 'QLOITER')
     
 program = final()
