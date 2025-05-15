@@ -12,9 +12,7 @@ class final:
         self.set_auto_mode()
         self.arm_motors()
         self.wait_for_apriltag()
-        self.pos()
-        self.set_land_mode()
-
+        
         #initialize the node, set anonymous to true
         rospy.init_node('newNode', anonymous = True)
         
@@ -22,27 +20,6 @@ class final:
         rospy.wait_for_service('/minihawk_SIM/mavros/set_mode')
         rospy.wait_for_service('/minihawk_SIM/mavros/cmd/arming')
 
-    
-    def arm_motors(self):
-        armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
-        armed(True)
-
-    
-    def apriltag_return(self, message):
-        if len(message.detections) > 0:
-            self.apriltagData = message.detections[0]
-            self.apriltagDetection = True
-    def wait_for_apriltag(self):
-        apriltag_subscriber = rospy.Subscriber('/minihawk_SIM/MH_usb_camera_link_optical/tag_detections', AprilTagDetectionArray, self.apriltag_return)
-        while not self.apriltagDetection and not rospy.is_shutdown():
-            rospy.sleep(0.1)
-        rospy.sleep(3)
-    def get_apriltag_position(self, pose):
-        while hasattr(pose, "pose"):
-            pose = pose.pose
-        return pose.position
-
-    def pos(self):
         self.set_loiter_mode()
         publish_control = rospy.Publisher('/minihawk_SIM/mavros/rc/override', OverrideRCIn, queue_size = 10)
         kRho = 10.0
@@ -80,6 +57,29 @@ class final:
                 publish_control.publish(control)
 
                 rospy.sleep(0.5)
+
+            self.set_land_mode()
+    
+    def arm_motors(self):
+        armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
+        armed(True)
+
+    
+    def apriltag_return(self, message):
+        if len(message.detections) > 0:
+            self.apriltagData = message.detections[0]
+            self.apriltagDetection = True
+    def wait_for_apriltag(self):
+        apriltag_subscriber = rospy.Subscriber('/minihawk_SIM/MH_usb_camera_link_optical/tag_detections', AprilTagDetectionArray, self.apriltag_return)
+        while not self.apriltagDetection and not rospy.is_shutdown():
+            rospy.sleep(0.1)
+        rospy.sleep(3)
+        return apriltag_subscriber
+    def get_apriltag_position(self, pose):
+        while hasattr(pose, "pose"):
+            pose = pose.pose
+        return pose.position
+        
     def set_land_mode(self):
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'QLAND')
