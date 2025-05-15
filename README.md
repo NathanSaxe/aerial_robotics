@@ -96,6 +96,9 @@ catkin build
 
 ## Simulation
 ```
+[Source from setup bash file in devel folder]:
+source devel/setup.bash
+
 [Launch ROS Gazebo SIM in new terminal]:
 roslaunch robowork_minihawk_gazebo minihawk_playpen.launch
 
