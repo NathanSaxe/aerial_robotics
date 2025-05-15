@@ -5,15 +5,14 @@ from apriltag_ros.msg import AprilTagDetectionArray
 from mavros_msgs.msg import OverrideRCIn
 
 
-class FinalProject:
+class final:
     def __init__(self):
-        #variables for storing information
         self.apriltagData = None
         self.apriltagDetection = False
         self.set_auto_mode()
         self.arm_motors()
         self.wait_for_apriltag()
-        self.finetune_position()
+        self.pos()
         self.set_land_mode()
 
         #initialize the node, set anonymous to true
@@ -47,8 +46,7 @@ class FinalProject:
             rospy.sleep(0.1)
         rospy.sleep(3)
 
-    def finetune_position(self):
-        #setting to qloiter
+    def pos(self):
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'QLOITER')
 
@@ -92,8 +90,5 @@ class FinalProject:
     def set_land_mode(self):
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'QLAND')
-if __name__ == '__main__':
-    try:
-        program = FinalProject()
-    except rospy.ROSInterruptException:
-        pass
+
+startprog = final()
