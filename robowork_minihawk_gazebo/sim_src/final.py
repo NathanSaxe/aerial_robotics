@@ -70,32 +70,22 @@ class FinalProject:
                 apriltag_position = self.get_apriltag_position(self.apriltagData.pose)#self.apriltagData.pose.pose.position
                 apriltag_x_offset = apriltag_position.x
                 apriltag_y_offset = apriltag_position.y
-
-                print(apriltag_x_offset, apriltag_y_offset)
-
-                if abs(apriltag_x_offset) < 1 and abs(apriltag_y_offset) < 1:
-                    print('it tried to break')
-                    break
-                
                 current_time = rospy.Time.now().to_sec()
                 timeDifference = max(current_time - last_time, 1e-3) 
                 last_time = current_time
-
-                #calculate roll 
                 integral_y += apriltag_y_offset * timeDifference
                 derivative_y = (apriltag_y_offset - prev_error_y) / timeDifference
                 roll_out = kRho * apriltag_y_offset + Ki * integral_y + Kd * derivative_y
                 prev_error_y = apriltag_y_offset
-                roll = int(max(1000, min(2000, 1500 + roll_out)))
-
-                #calculate pitch
                 integral_x += apriltag_x_offset * timeDifference
                 derivative_x = (apriltag_x_offset - prev_error_x) / timeDifference
                 pitch_out = kRho * apriltag_x_offset + Ki * integral_x + Kd * derivative_x
                 prev_error_x = apriltag_x_offset
-                pitch = int(max(1000, min(2000, 1500 + pitch_out)))
+                
 
                 throttle = 1500
+                roll = int(max(1000, min(2000, 1500 + roll_out)))
+                pitch = int(max(1000, min(2000, 1500 + pitch_out)))
                 yaw = 1500
 
                 control = OverrideRCIn()
