@@ -16,15 +16,13 @@ class FinalProject:
         self.finetune_position()
         self.set_land_mode()
 
-        #creating nodes
+        #initialize the node, set anonymous to true
         rospy.init_node('newNode', anonymous = True)
         
         #establishing services
         rospy.wait_for_service('/minihawk_SIM/mavros/set_mode')
         rospy.wait_for_service('/minihawk_SIM/mavros/cmd/arming')
         
-        
-
     def set_auto_mode(self):
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'AUTO')
@@ -58,16 +56,13 @@ class FinalProject:
         kRho = 10.0
         Ki = 0.1
         Kd = 5.0
-        integral_x = 0.0
-        integral_y = 0.0
-        prev_error_x = 0.0
-        prev_error_y = 0.0
+        integral_x = integral_y = prev_error_x = prev_error_y = 0.0
 
         last_time = rospy.Time.now().to_sec()
         while True:
             if self.apriltagData:
                 #take data
-                apriltag_position = self.get_apriltag_position(self.apriltagData.pose)#self.apriltagData.pose.pose.position
+                apriltag_position = self.get_apriltag_position(self.apriltagData.pose)
                 apriltag_x_offset = apriltag_position.x
                 apriltag_y_offset = apriltag_position.y
                 current_time = rospy.Time.now().to_sec()
@@ -98,4 +93,7 @@ class FinalProject:
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'QLAND')
 if __name__ == '__main__':
-    program = FinalProject()
+    try:
+        program = FinalProject()
+    except rospy.ROSInterruptException:
+        pass
