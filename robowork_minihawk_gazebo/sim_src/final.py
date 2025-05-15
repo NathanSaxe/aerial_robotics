@@ -5,7 +5,7 @@ from apriltag_ros.msg import AprilTagDetectionArray
 from mavros_msgs.msg import OverrideRCIn
 
 
-class FinalProject:
+class final:
     def __init__(self):
         #variables for storing information
         self.apriltagData = None
@@ -94,6 +94,6 @@ class FinalProject:
         set_mode(0, 'QLAND')
 if __name__ == '__main__':
     try:
-        program = FinalProject()
+        program = final()
     except rospy.ROSInterruptException:
         pass
