@@ -37,15 +37,11 @@ class final:
                 timeDifference = max(current_time - last_time, 1e-3) 
                 last_time = current_time
                 prev_error_y = apriltag_y_offset
-                integral_x += apriltag_x_offset * timeDifference
-                derivative_x = (apriltag_x_offset - prev_error_x) / timeDifference
-                pitch_out = kRho * apriltag_x_offset + Ki * integral_x + Kd * derivative_x
                 prev_error_x = apriltag_x_offset
-                
 
                 throttle = 1500
-                roll = computeRot(apriltag_y_offset, prev_error_y, timeDifference, kRho, Ki, Kd)
-                pitch = int(max(1000, min(2000, 1500 + pitch_out)))
+                roll = compute_rot(apriltag_y_offset, prev_error_y, timeDifference, kRho, Ki, Kd)
+                pitch = compute_rot(apriltag_x_offset, prev_error_x, timeDifference, kRho, Ki, Kd)
                 yaw = 1500
 
                 control = OverrideRCIn()
@@ -60,8 +56,8 @@ class final:
     def arm_motors(self):
         armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
         armed(True)
-        
-    def computeRot(self, offset, prevError, timeDiff, rho, theta, phi):
+
+    def compute_rot(self, offset, prevError, timeDiff, rho, theta, phi):
         integral += offset * timeDiff
         derivative = (offset - prevError)/timeDiff
         output = rho * offset + theta * integral + phi * derivative 
