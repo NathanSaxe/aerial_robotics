@@ -92,6 +92,6 @@ class final:
         set_mode(0, 'QLAND')
 if __name__ == '__main__':
     try:
-        program = FinalProject()
+        program = final()
     except rospy.ROSInterruptException:
         pass
