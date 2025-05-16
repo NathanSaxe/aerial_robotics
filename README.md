@@ -96,8 +96,7 @@ catkin build
 
 ## Simulation
 ```
-[Source from setup bash file in devel folder]:
-source devel/setup.bash
+
 
 [Launch ROS Gazebo SIM in new terminal]:
 roslaunch robowork_minihawk_gazebo minihawk_playpen.launch
@@ -109,8 +108,11 @@ cd $HOME/aerial_robotics_ws/ardupilot
 [Launch Rviz in new terminal]:
 rviz -d $HOME/aerial_robotics_ws/src/aerial_robotics/robowork_minihawk_launch/config/minihawk_SIM.rviz
 
+[Source from setup bash file in devel folder]:
+source devel/setup.bash
+
 [Launch Project instructions]
-python ../src/aerial_robotics/robowork_minihawk_gazebo/src/final.py
+python $HOME/aerial_robotics_ws/src/aerial_robotics/final.py
 
 
 

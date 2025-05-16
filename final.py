@@ -9,10 +9,10 @@ class final:
     def __init__(self):
         self.apriltagData = None
         self.apriltagDetection = False
-        self.set_auto_mode()
-        self.arm_motors()
-        self.wait_for_apriltag()
-        
+
+        armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
+        armed(True)
+
         #initialize the node, set anonymous to true
         rospy.init_node('newNode', anonymous = True)
         
@@ -22,6 +22,8 @@ class final:
 
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'QLOITER')
+        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
+        set_mode(0, 'AUTO')
         self.motion()
         set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
         set_mode(0, 'QLAND')
@@ -54,12 +56,8 @@ class final:
 
                 publish_control.publish(control)
 
-                rospy.sleep(1)
-    
-    def arm_motors(self):
-        armed = rospy.ServiceProxy('/minihawk_SIM/mavros/cmd/arming', CommandBool)
-        armed(True)
-
+                rospy.sleep(0.75)
+                
     def compute_rot(self, offset, prevError, timeDiff, rho, theta, phi):
         integral += offset * timeDiff
         derivative = (offset - prevError)/timeDiff
@@ -80,8 +78,6 @@ class final:
         while hasattr(pose, "pose"):
             pose = pose.pose
         return pose.position
-    def set_auto_mode(self):
-        set_mode = rospy.ServiceProxy('/minihawk_SIM/mavros/set_mode', SetMode)
-        set_mode(0, 'AUTO')
+        
     
 program = final()
